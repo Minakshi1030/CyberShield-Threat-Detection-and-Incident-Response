@@ -1,0 +1,20 @@
+const router = require("express").Router();
+const PDFDocument = require("pdfkit");
+const { Alert, Incident, Log } = require("../models");
+const { protect } = require("../middleware/auth");
+router.use(protect);
+router.get("/pdf",async(req,res)=>{
+  const [alerts,incidents,logs]=await Promise.all([Alert.find().sort({createdAt:-1}).limit(100),Incident.find().sort({createdAt:-1}).limit(100),Log.countDocuments()]);
+  res.setHeader("Content-Type","application/pdf");
+  res.setHeader("Content-Disposition",'attachment; filename="cybershield-security-report.pdf"');
+  const doc=new PDFDocument({margin:48}); doc.pipe(res);
+  doc.fontSize(22).text("CyberShield Security Report"); doc.moveDown(.3);
+  doc.fontSize(9).fillColor("#64748b").text(`Generated: ${new Date().toLocaleString()}`); doc.fillColor("#111827").moveDown();
+  doc.fontSize(13).text("Executive Summary"); doc.fontSize(10).text(`Total security logs: ${logs}\nAlerts: ${alerts.length}\nIncidents: ${incidents.length}`);
+  doc.moveDown().fontSize(13).text("Recent Alerts");
+  alerts.slice(0,30).forEach(a=>doc.fontSize(9).text(`${a.severity.toUpperCase()} | ${a.title} | Risk ${a.riskScore} | ${a.status} | ${a.createdAt.toISOString()}`));
+  doc.moveDown().fontSize(13).text("Recent Incidents");
+  incidents.slice(0,30).forEach(i=>doc.fontSize(9).text(`${i.severity.toUpperCase()} | ${i.title} | ${i.status} | ${i.createdAt.toISOString()}`));
+  doc.end();
+});
+module.exports=router;
