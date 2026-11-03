@@ -15,7 +15,7 @@ A full-stack security operations dashboard built with React, Express, and MongoD
 - Helmet headers, API rate limiting on authentication, input size limit
 
 ## Requirements
-- Node.js 18+
+- Node.js 
 - MongoDB Community Server running locally, or a MongoDB connection string
 
 ## 1. Backend setup (macOS/Linux)
